@@ -1,0 +1,9 @@
+[project]
+name = "cortexaidevkit.github.io"
+version = "1.0.0"
+description = "The CortexAIDevKit website, built with Zensical."
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "zensical>=0.0.71",
+]

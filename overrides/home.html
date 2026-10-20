@@ -1,0 +1,174 @@
+{% extends "main.html" %}
+{% block tabs %}
+{{ super() }}
+
+<style>
+  .md-main { display: none; } /* empty on the home page; the banner fits exactly one screen */
+
+  /* ── Banner: one quiet, full screen ───────────────────── */
+  .cx-home {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100svh - 48px);  /* JS refines to the exact fit */
+    padding: 72px 16px 88px;
+    box-sizing: border-box;
+    background: #080808;
+    overflow: hidden;
+    isolation: isolate;
+  }
+
+  /* faint grid, fading out toward the edges */
+  .cx-home::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.035) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.035) 1px, transparent 1px);
+    background-size: 80px 80px;
+    background-position: center center;
+    -webkit-mask-image: radial-gradient(ellipse 70% 65% at 50% 45%, #000 30%, transparent 100%);
+            mask-image: radial-gradient(ellipse 70% 65% at 50% 45%, #000 30%, transparent 100%);
+    pointer-events: none;
+    z-index: -2;
+  }
+
+  /* purple-to-cyan glow behind the logo and wordmark, echoing the logo */
+  .cx-home::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    width: min(900px, 120vw);
+    height: 420px;
+    transform: translate(-50%, -50%);
+    background:
+      radial-gradient(ellipse 50% 60% at 35% 50%, rgba(161,0,255,0.14), transparent 70%),
+      radial-gradient(ellipse 50% 60% at 65% 50%, rgba(1,200,241,0.14), transparent 70%);
+    filter: blur(10px);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  .cx-home__inner {
+    max-width: 960px;
+    width: 100%;
+    text-align: center;
+  }
+
+  .cx-home__inner > * { animation: cx-rise 0.9s cubic-bezier(.2,.7,.2,1) both; }
+  .cx-home__inner > :nth-child(2) { animation-delay: 0.08s; }
+  .cx-home__inner > :nth-child(3) { animation-delay: 0.16s; }
+  .cx-home__inner > :nth-child(4) { animation-delay: 0.24s; }
+  @keyframes cx-rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  .cx-home__logo {
+    display: block;
+    width: clamp(96px, 14vw, 148px);
+    height: auto;
+    margin: 0 auto;
+    filter: drop-shadow(0 0 28px rgba(127,60,255,0.35)) drop-shadow(0 0 48px rgba(1,200,241,0.2));
+  }
+
+  /* beats .md-typeset h1 specificity */
+  .md-typeset .cx-home__title,
+  .cx-home .cx-home__title {
+    margin: 24px 0 0;
+    font-size: clamp(44px, 10vw, 112px);
+    font-weight: 700;
+    letter-spacing: -0.045em;
+    line-height: 1;
+    color: #faf9f5;
+  }
+  .cx-home__title span {
+    background: linear-gradient(100deg, #a100ff 0%, #4a5cff 45%, #01c8f1 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    color: transparent;
+  }
+
+  .cx-home__tagline {
+    max-width: 34rem;
+    margin: 24px auto 0;
+    font-size: clamp(16px, 2.1vw, 19px);
+    line-height: 1.6;
+    color: #9a9997;
+  }
+
+  .cx-home__cta { margin-top: 40px; }
+
+  .cx-home__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 13px 24px;
+    border: 1px solid #ffffff;
+    border-radius: 6px;
+    background: #ffffff;
+    color: #080808 !important;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    line-height: 1;
+    text-decoration: none !important;
+    transition: background 0.15s, border-color 0.15s, box-shadow 0.2s;
+  }
+  .cx-home__btn:hover,
+  .cx-home__btn:focus-visible {
+    background: #e0e0d7;
+    border-color: #e0e0d7;
+    box-shadow: 0 0 0 4px rgba(1,200,241,0.15), 0 12px 40px rgba(1,200,241,0.18);
+  }
+  .cx-home__btn svg { width: 16px; height: 16px; transition: transform 0.2s; }
+  .cx-home__btn:hover svg { transform: translateX(3px); }
+
+  .cx-home__note {
+    margin: 18px 0 0;
+    font-size: 13px;
+    color: #5e5e5e;
+  }
+  .cx-home__note strong { color: #8a8a88; font-weight: 500; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .cx-home__inner > * { animation: none; }
+  }
+</style>
+
+<section class="cx-home">
+  <div class="cx-home__inner">
+    <img class="cx-home__logo" src="img/logo.png" alt="CortexAIDevKit logo" width="148" height="148">
+
+    <h1 class="cx-home__title">Cortex<span>AI</span>DevKit</h1>
+
+    <p class="cx-home__tagline">Agentic workflows for the engineering work everyone keeps postponing.</p>
+
+    <div class="cx-home__cta">
+      <a class="cx-home__btn" href="pages/modernize/about/">
+        Explore Modernize
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+      </a>
+      <p class="cx-home__note"><strong>Java · Spring Boot</strong> upgrades, orchestrated by agents, approved by humans.</p>
+    </div>
+  </div>
+</section>
+
+<script>
+(function () {
+  var page = document.querySelector('.cx-home');
+  if (!page) return;
+  function fit() {
+    var top = page.getBoundingClientRect().top + window.scrollY;
+    page.style.minHeight = (window.innerHeight - top) + 'px';
+  }
+  fit();
+  window.addEventListener('resize', fit);
+  window.addEventListener('orientationchange', fit);
+})();
+</script>
+
+{% endblock %}
+{% block content %}{% endblock %}
+{% block footer %}{% endblock %}

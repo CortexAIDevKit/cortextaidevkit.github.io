@@ -1,0 +1,62 @@
+[project]
+site_name = "CortexAIDevKit"
+site_description = "Agentic workflows for the engineering work everyone keeps postponing."
+site_author = "CortexAIDevKit"
+site_url = "https://cortexaidevkit.org/"
+copyright = """
+Copyright &copy; 2026 CortexAIDevKit. All rights reserved.
+"""
+
+nav = [
+    { "Home" = "index.md" },
+    { "Modernize" = [
+        { "About" = "pages/modernize/about/index.md" },
+        { "Quickstart" = "pages/modernize/quick-start/index.md" },
+        { "Orchestrator" = "pages/modernize/orchestrator/index.md" },
+        { "Discover" = "pages/modernize/discover/index.md" },
+        { "Determine" = "pages/modernize/determine/index.md" },
+        { "Test" = "pages/modernize/test/index.md" },
+        { "Code" = "pages/modernize/code/index.md" }
+    ] }
+]
+
+extra_css = ["stylesheets/custom.css", "stylesheets/typography.css"]
+
+[project.theme]
+custom_dir = "overrides"
+logo = "img/logo.png"
+favicon = "img/favicon.png"
+language = "en"
+features = [
+    "announce.dismiss",
+    "content.code.annotate",
+    "content.code.copy",
+    "content.code.select",
+    "content.footnote.tooltips",
+    "content.tabs.link",
+    "content.tooltips",
+    "navigation.footer",
+    "navigation.instant",
+    "navigation.instant.prefetch",
+    "navigation.prune",
+    "navigation.sections",
+    "navigation.tabs",
+    "navigation.tabs.sticky",
+    "navigation.top",
+    "navigation.tracking",
+    "search.highlight",
+    "toc.follow"
+]
+
+[project.theme.font]
+text = "Geist"
+code = "Geist Mono"
+
+[[project.theme.palette]]
+scheme = "slate"
+primary = "custom"
+accent = "custom"
+
+[[project.extra.social]]
+icon = "fontawesome/brands/github"
+link = "https://github.com/CortexAIDevKit"

@@ -1,0 +1,19 @@
+# IntelliJ
+.idea
+*.iml
+
+# Reference
+tmp
+
+# Build
+site
+.cache
+
+# Python
+.venv
+
+# Draw.io
+*.drawio.bkp
+*.drawio.dtmp
+
+.DS_Store
