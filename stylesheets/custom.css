@@ -1,0 +1,801 @@
+.md-header__source { display: none; }
+
+/* Agent-native inspired dark theme — near-black bg, warm off-white text, cyan accent */
+[data-md-color-scheme="slate"] {
+  /* Backgrounds */
+  --md-default-bg-color: #0a0a0a;
+  --md-default-bg-color--light: #0f0f0f;
+  --md-default-bg-color--lighter: #1a1a1a;
+  --md-default-bg-color--lightest: #2e2e2e;
+
+  /* Text */
+  --md-default-fg-color: #faf9f5;
+  --md-default-fg-color--light: #aeadac;
+  --md-default-fg-color--lighter: #5e5e5e;
+  --md-default-fg-color--lightest: rgba(250, 249, 245, 0.12);
+
+  /* Primary (header, nav bar) */
+  --md-primary-fg-color: #0f0f0f;
+  --md-primary-fg-color--light: #1a1a1a;
+  --md-primary-fg-color--dark: #000000;
+  --md-primary-bg-color: #faf9f5;
+  --md-primary-bg-color--light: #aeadac;
+
+  /* Accent (links, active states, highlights) */
+  --md-accent-fg-color: #01c8f1;
+  --md-accent-fg-color--transparent: rgba(1, 200, 241, 0.1);
+  --md-accent-bg-color: #0a0a0a;
+  --md-accent-bg-color--light: #0f0f0f;
+
+  /* Typeset links */
+  --md-typeset-a-color: #bef0f5;
+
+  /* Code blocks */
+  --md-code-bg-color: #0f0f0f;
+  --md-code-fg-color: #e0e0d7;
+  --md-code-hl-color: rgba(1, 200, 241, 0.15);
+  --md-code-hl-number-color: #dec75f;
+  --md-code-hl-special-color: #fa9bf2;
+  --md-code-hl-function-color: #00dff6;
+  --md-code-hl-constant-color: #0fdfba;
+  --md-code-hl-keyword-color: #bef0f5;
+  --md-code-hl-string-color: #0fdfba;
+  --md-code-hl-name-color: #faf9f5;
+  --md-code-hl-operator-color: #aeadac;
+  --md-code-hl-punctuation-color: #aeadac;
+  --md-code-hl-comment-color: #5e5e5e;
+  --md-code-hl-generic-color: #aeadac;
+  --md-code-hl-variable-color: #bef0f5;
+
+  /* Footer */
+  --md-footer-bg-color: #0a0a0a;
+  --md-footer-bg-color--dark: #000000;
+  --md-footer-fg-color: #aeadac;
+  --md-footer-fg-color--light: #5e5e5e;
+  --md-footer-fg-color--lighter: #3d3d3d;
+
+  /* Admonitions */
+  --md-admonition-bg-color: #0f0f0f;
+
+  /* Shadow */
+  --md-shadow-z1: 0 0 0.2rem rgba(0, 0, 0, 0.4), 0 0.2rem 0.4rem rgba(0, 0, 0, 0.4);
+  --md-shadow-z2: 0 0 0.2rem rgba(0, 0, 0, 0.5), 0 0.2rem 0.4rem rgba(0, 0, 0, 0.5);
+  --md-shadow-z3: 0 0 0.2rem rgba(0, 0, 0, 0.6), 0 0.4rem 1rem rgba(0, 0, 0, 0.6);
+}
+
+/* Card title — icon chip + title link with hover arrow */
+.card-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.md-typeset .card-title .twemoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(1, 200, 241, 0.25);
+  background: var(--md-accent-fg-color--transparent);
+  color: var(--md-accent-fg-color);
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.md-typeset .card-title .twemoji svg {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.md-typeset .card-title a {
+  color: var(--md-default-fg-color);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.md-typeset .card-title a::after {
+  content: "→";
+  display: inline-block;
+  margin-left: 0.4rem;
+  opacity: 0;
+  transform: translateX(-0.25rem);
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.md-typeset .grid.cards > ul > li:has(.card-title):hover {
+  border-color: rgba(1, 200, 241, 0.4);
+}
+
+.md-typeset .grid.cards > ul > li:hover .card-title a {
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .grid.cards > ul > li:hover .card-title a::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.md-typeset .grid.cards > ul > li:hover .card-title .twemoji {
+  background: rgba(1, 200, 241, 0.18);
+  border-color: var(--md-accent-fg-color);
+}
+/* Steps — numbered vertical timeline (wrap headings in <div class="steps" markdown>) */
+.md-typeset .steps {
+  counter-reset: step;
+  margin-left: 1rem;
+  padding-left: 1.75rem;
+  border-left: 1px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .steps > h2 {
+  position: relative;
+  counter-increment: step;
+  margin-top: 2rem;
+}
+
+.md-typeset .steps > h2:first-child {
+  margin-top: 0;
+}
+
+.md-typeset .steps > h2::before {
+  content: counter(step);
+  position: absolute;
+  left: -2.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--md-accent-fg-color);
+  background: var(--md-default-bg-color);
+  color: var(--md-accent-fg-color);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+/* Symptoms — compact icon list laid out as a 2-column grid */
+.md-typeset .symptoms > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 0.6rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .symptoms > ul > li {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset .symptoms .twemoji {
+  margin-right: 0.5rem;
+  vertical-align: -0.2em;
+  color: var(--md-accent-fg-color);
+}
+
+/* Kicker — one-line emphasis between sections */
+.md-typeset p.kicker {
+  margin: 1.25rem 0;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--md-accent-fg-color);
+  font-size: 15px;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset p.kicker strong {
+  color: var(--md-default-fg-color);
+}
+
+/* Versus — two perspectives side by side */
+.md-typeset .versus {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.8rem;
+  margin: 1rem 0;
+}
+
+.md-typeset .versus > div {
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset .versus > div:last-child {
+  border-color: rgba(1, 200, 241, 0.3);
+}
+
+.md-typeset .versus__label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .versus > div:last-child .versus__label {
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .versus ul {
+  margin: 0.6rem 0 0;
+}
+
+.md-typeset .versus li {
+  margin-bottom: 0.25rem;
+}
+
+/* Stat — a single headline number */
+.md-typeset .stat {
+  margin: 1rem 0;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgba(1, 200, 241, 0.3);
+  border-radius: 0.5rem;
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .stat > p {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.4rem 1rem;
+  margin: 0;
+}
+
+.md-typeset .stat__value {
+  font-size: 40px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .stat__label {
+  color: var(--md-default-fg-color--light);
+}
+
+/* Phases — number the pipeline cards 01, 02, ... */
+.md-typeset .grid.cards.phases > ul {
+  counter-reset: phase;
+}
+
+.md-typeset .grid.cards.phases > ul > li {
+  position: relative;
+  counter-increment: phase;
+}
+
+.md-typeset .grid.cards.phases > ul > li::before {
+  content: counter(phase, decimal-leading-zero);
+  position: absolute;
+  top: 0.8rem;
+  right: 1rem;
+  font-family: var(--md-code-font-family);
+  font-size: 12px;
+  color: var(--md-default-fg-color--lighter);
+}
+
+/* Before / after — full-width comparison table */
+.md-typeset .before-after .md-typeset__table,
+.md-typeset .before-after table:not([class]) {
+  display: table;
+  width: 100%;
+}
+
+.md-typeset .before-after td:first-child {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .before-after td:nth-child(2) {
+  width: 2rem;
+  color: var(--md-accent-fg-color);
+}
+
+/* Versus — optional "where it lives" line under the label */
+.md-typeset .versus p:has(> .versus__where) {
+  margin: 0.25rem 0 0;
+}
+
+.md-typeset .versus__where {
+  font-size: 13px;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Motto — a short chain of roles: icon, name, verb, joined by arrows */
+.md-typeset .motto > ul {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1.25rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .motto > ul > li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0.9rem 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  background: var(--md-default-bg-color--light);
+  text-align: center;
+}
+
+.md-typeset .motto > ul > li:not(:last-child)::after {
+  content: "→";
+  position: absolute;
+  right: -1.05rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--md-default-fg-color--lighter);
+}
+
+.md-typeset .motto .twemoji {
+  margin-bottom: 0.35rem;
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .motto .twemoji svg {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.md-typeset .motto strong {
+  font-size: 14px;
+}
+
+.md-typeset .motto li > span:not(.twemoji) {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Last step (people) carries the accent */
+.md-typeset .motto > ul > li:last-child {
+  border-color: rgba(1, 200, 241, 0.4);
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .motto > ul > li:last-child > span:not(.twemoji) {
+  color: var(--md-accent-fg-color);
+}
+
+/* motto--first / --second / --third: that step carries the accent instead of the last */
+.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator) > ul > li:last-child {
+  border-color: var(--md-default-fg-color--lightest);
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator) > ul > li:last-child > span:not(.twemoji) {
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .motto--first > ul > li:nth-child(1),
+.md-typeset .motto--second > ul > li:nth-child(2),
+.md-typeset .motto--third > ul > li:nth-child(3) {
+  border-color: rgba(1, 200, 241, 0.4);
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .motto--first > ul > li:nth-child(1) > span:not(.twemoji),
+.md-typeset .motto--second > ul > li:nth-child(2) > span:not(.twemoji),
+.md-typeset .motto--third > ul > li:nth-child(3) > span:not(.twemoji) {
+  color: var(--md-accent-fg-color);
+}
+
+/* Orchestrator above the phases: a hub with a bus line and a down arrow into each step */
+.md-typeset .motto > p {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  width: fit-content;
+  margin: 1.5rem auto 0;
+  padding: 0.6rem 1.4rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.5rem;
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset .motto > p .twemoji {
+  margin: 0;
+}
+
+.md-typeset .motto > p > span:not(.twemoji) {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+/* motto--orchestrator: the orchestrator carries the accent, no phase does */
+.md-typeset .motto--orchestrator > p {
+  border-color: rgba(1, 200, 241, 0.4);
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .motto--orchestrator > p > span:not(.twemoji) {
+  color: var(--md-accent-fg-color);
+}
+
+/* Stem from the orchestrator down to the bus */
+.md-typeset .motto > p::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -17px;
+  height: 16px;
+  border-left: 1px solid var(--md-default-fg-color--lighter);
+}
+
+.md-typeset .motto > p + ul {
+  position: relative;
+  margin-top: 41px;
+}
+
+/* Bus: spans from the centre of the first card to the centre of the last */
+.md-typeset .motto > p + ul::before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: calc(12.5% - 0.46875rem);
+  right: calc(12.5% - 0.46875rem);
+  border-top: 1px solid var(--md-default-fg-color--lighter);
+}
+
+/* Arrow from the bus into each card */
+.md-typeset .motto > p + ul > li::before {
+  content: "";
+  position: absolute;
+  top: -25px;
+  left: 50%;
+  width: 10px;
+  height: 24px;
+  transform: translateX(-50%);
+  background: var(--md-default-fg-color--lighter);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 24'%3E%3Cpath d='M5 0V23M1 18.5L5 23L9 18.5' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 24'%3E%3Cpath d='M5 0V23M1 18.5L5 23L9 18.5' fill='none' stroke='black' stroke-width='1.2'/%3E%3C/svg%3E") no-repeat center / 100% 100%;
+}
+
+/* Narrow screens: 2x2 grid, arrows would point the wrong way */
+@media (max-width: 44.9375em) {
+  .md-typeset .motto > ul {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .md-typeset .motto > ul > li::after,
+  .md-typeset .motto > p::after,
+  .md-typeset .motto > p + ul::before,
+  .md-typeset .motto > p + ul > li::before {
+    display: none;
+  }
+
+  .md-typeset .motto > p + ul {
+    margin-top: 1.25rem;
+  }
+}
+
+/* Checkpoints — versus panels whose items carry a muted outcome line */
+.md-typeset .checkpoints ul {
+  margin-top: 0.8rem;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .checkpoints li {
+  margin: 0 0 0.7rem;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--md-default-fg-color--lightest);
+}
+
+.md-typeset .checkpoints li:last-child {
+  margin-bottom: 0;
+}
+
+.md-typeset .checkpoints > div:last-child li {
+  border-left-color: rgba(1, 200, 241, 0.5);
+}
+
+.md-typeset .checkpoints li > span {
+  display: block;
+  font-size: 13px;
+  color: var(--md-default-fg-color--light);
+}
+
+/* Roles — 2x2 cards with a muted role line under the title */
+.md-typeset .grid.cards.roles > ul {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.md-typeset .grid.cards.roles .role {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .grid.cards.roles > ul > li:last-child {
+  border-color: rgba(1, 200, 241, 0.4);
+}
+
+.md-typeset .grid.cards.roles > ul > li:last-child .role {
+  color: var(--md-accent-fg-color);
+}
+
+@media (max-width: 44.9375em) {
+  .md-typeset .grid.cards.roles > ul {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Landing page components (modernize/about) ─────────────────────── */
+
+/* Hero — eyebrow, large headline, lead, actions, pipeline visual */
+.md-typeset .hero {
+  position: relative;
+  margin: 0 0 3rem;
+  padding: 2.5rem 1.5rem 1.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 1rem;
+  background:
+    radial-gradient(ellipse 70% 60% at 50% 0%, rgba(1, 200, 241, 0.12), transparent 70%),
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px) 0 0 / 40px 40px,
+    var(--md-default-bg-color);
+  text-align: center;
+  overflow: hidden;
+}
+
+.md-typeset .hero__eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.8rem;
+  border: 1px solid rgba(1, 200, 241, 0.3);
+  border-radius: 999px;
+  background: var(--md-accent-fg-color--transparent);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .hero__eyebrow .twemoji svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.md-typeset .hero h1 {
+  max-width: 42rem;
+  margin: 1.25rem auto 0;
+  font-size: clamp(30px, 5vw, 46px);
+  font-weight: 700;
+  letter-spacing: -0.035em;
+  line-height: 1.1;
+}
+
+.md-typeset .hero h1 strong {
+  background: linear-gradient(90deg, #01c8f1, #bef0f5);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.md-typeset .hero p.hero__lead {
+  max-width: 36rem;
+  margin: 1rem auto 0;
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .hero__actions > p {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin: 1.5rem 0 0;
+}
+
+.md-typeset .hero__actions .md-button {
+  margin: 0;
+}
+
+.md-typeset .hero .motto {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+/* Eyebrow — small numbered label above a section heading */
+.md-typeset .eyebrow {
+  display: block;
+  margin-top: 3.5rem;
+  font-family: var(--md-code-font-family);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset p:has(> .eyebrow:only-child) {
+  margin: 0;
+}
+
+.md-typeset p:has(> .eyebrow:only-child) + h2 {
+  margin-top: 0.4rem;
+  font-size: clamp(22px, 3.2vw, 30px);
+  letter-spacing: -0.025em;
+}
+
+/* Engines — who does the work: deterministic tools vs model judgment */
+.md-typeset .engines {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+}
+
+.md-typeset .engines > div {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.75rem;
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset .engines > div:last-child {
+  border-color: rgba(1, 200, 241, 0.4);
+  background: var(--md-accent-fg-color--transparent);
+}
+
+.md-typeset .engines h3 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.6rem 0 0.4rem;
+  font-size: 16px;
+}
+
+.md-typeset .engines h3 .twemoji {
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .engines > div > p:last-child {
+  margin: 0;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .engines > div > p:first-child {
+  margin: 0;
+}
+
+.md-typeset .engines__tag {
+  display: inline-block;
+  padding: 0.1rem 0.55rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .engines__tag--judgment {
+  border-color: rgba(1, 200, 241, 0.4);
+  color: var(--md-accent-fg-color);
+}
+
+/* Benefits — icon tiles */
+.md-typeset .benefits > ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.8rem;
+  margin: 1.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.md-typeset .benefits > ul > li {
+  margin: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.75rem;
+  background: var(--md-default-bg-color--light);
+}
+
+.md-typeset .benefits > ul > li > p {
+  margin: 0;
+}
+
+.md-typeset .benefits > ul > li > p:first-child .twemoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.2rem;
+  height: 2.2rem;
+  margin-bottom: 0.7rem;
+  border: 1px solid rgba(1, 200, 241, 0.25);
+  border-radius: 0.5rem;
+  background: var(--md-accent-fg-color--transparent);
+  color: var(--md-accent-fg-color);
+}
+
+.md-typeset .benefits > ul > li > p:first-child .twemoji svg {
+  width: 1.2rem;
+  height: 1.2rem;
+}
+
+.md-typeset .benefits > ul > li > p:nth-child(2) {
+  font-size: 15px;
+}
+
+.md-typeset .benefits > ul > li > p:last-child {
+  margin-top: 0.3rem;
+  color: var(--md-default-fg-color--light);
+}
+
+/* CTA — closing call to action band */
+.md-typeset .cta {
+  margin: 3.5rem 0 1rem;
+  padding: 2rem 1.5rem;
+  border: 1px solid rgba(1, 200, 241, 0.3);
+  border-radius: 1rem;
+  background: radial-gradient(ellipse 80% 100% at 50% 100%, rgba(1, 200, 241, 0.14), transparent 70%),
+    var(--md-default-bg-color--light);
+  text-align: center;
+}
+
+.md-typeset .cta h2 {
+  margin: 0;
+  font-size: clamp(22px, 3.2vw, 28px);
+  letter-spacing: -0.025em;
+}
+
+.md-typeset .cta > p {
+  margin: 0.5rem 0 0;
+  color: var(--md-default-fg-color--light);
+}
+
+.md-typeset .cta > p:last-child {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 1.25rem;
+}
+
+.md-typeset .cta .md-button {
+  margin: 0;
+}
+
+@media (max-width: 44.9375em) {
+  .md-typeset .hero {
+    padding: 2rem 1rem 1rem;
+  }
+}
