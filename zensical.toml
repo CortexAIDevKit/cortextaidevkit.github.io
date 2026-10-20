@@ -1,7 +1,7 @@
 [project]
 site_name = "CortexAIDevKit"
 site_description = "Agentic workflows for the engineering work everyone keeps postponing."
-site_author = "CortexAIDevKit"
+site_author = "Paul WILLIAMS"
 site_url = "https://cortexaidevkit.org/"
 copyright = """
 Copyright &copy; 2026 CortexAIDevKit. All rights reserved.
