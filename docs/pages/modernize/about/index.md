@@ -8,12 +8,12 @@
 
 <div class="hero__actions" markdown>
 
-[:material-rocket-launch: Quick start](../quick-start/index.md){ .md-button .md-button--primary }
+[:material-rocket-launch: Quickstart](../quick-start/index.md){ .md-button .md-button--primary }
 [See how it works :material-arrow-down:](#how-it-works){ .md-button }
 
 </div>
 
-<div class="motto" markdown>
+<div class="motto motto--overview" markdown>
 
 :material-sitemap-outline: **Orchestrator** <span>Coordinates</span>
 
