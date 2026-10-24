@@ -381,13 +381,13 @@
   color: var(--md-accent-fg-color);
 }
 
-/* motto--first / --second / --third: that step carries the accent instead of the last */
-.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator) > ul > li:last-child {
+/* motto--first / --second / --third: that step carries the accent instead of the last; motto--overview: no step does */
+.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator, .motto--overview) > ul > li:last-child {
   border-color: var(--md-default-fg-color--lightest);
   background: var(--md-default-bg-color--light);
 }
 
-.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator) > ul > li:last-child > span:not(.twemoji) {
+.md-typeset :is(.motto--first, .motto--second, .motto--third, .motto--orchestrator, .motto--overview) > ul > li:last-child > span:not(.twemoji) {
   color: var(--md-default-fg-color--light);
 }
 
@@ -625,6 +625,19 @@
 
 .md-typeset .hero__actions .md-button {
   margin: 0;
+}
+
+/* Primary buttons carry the accent; the theme default (primary fg) blends into the page */
+.md-typeset .md-button--primary {
+  border-color: var(--md-accent-fg-color);
+  background: var(--md-accent-fg-color);
+  color: var(--md-accent-bg-color);
+}
+
+.md-typeset .md-button--primary:is(:hover, :focus) {
+  border-color: var(--md-accent-fg-color);
+  background: transparent;
+  color: var(--md-accent-fg-color);
 }
 
 .md-typeset .hero .motto {
