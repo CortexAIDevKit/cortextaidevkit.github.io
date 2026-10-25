@@ -98,11 +98,11 @@ are encoded once as a lookup table in a read-only script.
         DETA -->|" produces "| DETR[("modernization-plan.md")]
         DETR -->|" reviewed by "| OA
         OA -.->|" rejected → revise "| DETA
-        OA -->|" 3. testability < 80% → calls "| TA["test-agent"]
+        OA -->|" 3. score < threshold → calls "| TA["test-agent"]
         TA -->|" produces "| TR[("tests + testability-report.md")]
         TR -->|" reviewed by "| OA
         OA -.->|" rejected → revise "| TA
-        OA -->|" 4. testability ≥ 80% → calls "| CA["coding-agent"]
+        OA -->|" 4. score ≥ threshold, or test approved → calls "| CA["coding-agent"]
         CA -->|" once the build passes "| MP[("upgrade + modernization-summary-report.md")]
     ```
 
@@ -295,7 +295,7 @@ sequenceDiagram
 
 | Action | The orchestrator then… |
 |---|---|
-| `RUN_AGENT` | Invokes the next phase agent and records the session |
+| `RUN_AGENT` | Invokes the next phase agent and records the session. Before the first `coding-agent` run, it asks you for the target versions |
 | `AWAIT_APPROVAL` | Summarises the report and asks you to approve or reject |
 | `AWAIT_MITIGATION` | Shows the error and asks you to retry or abort |
 | `DONE` | Reports the final summary and stops |
@@ -337,8 +337,11 @@ Which commands and files the agents may use **without asking**.
 | `MODERNIZATION_PIT_WEIGHT` | `0.4` | Determine, Test | Weight of PIT mutation strength |
 | `MODERNIZATION_TEST_MAX_ITERATIONS` | `5` | Test | Max write-tests-and-re-measure rounds |
 | `MODERNIZATION_CODING_MAX_ATTEMPTS` | `3` | Code | Attempts before asking you to retry or abort |
-| `MODERNIZATION_TARGET_JAVA_VERSION` | `25` | Code | Default Java version offered |
-| `MODERNIZATION_TARGET_SPRING_BOOT_VERSION` | `4.0` | Code | Default Spring Boot version offered |
+| `MODERNIZATION_CURRENT_JAVA_VERSION` | `17` | All | Java version of the JDK your project builds on today |
+| `MODERNIZATION_CURRENT_JAVA_HOME` | placeholder | All | Home folder of that JDK. **You must set it** |
+| `MODERNIZATION_TARGET_JAVA_VERSION` | `25` | Code | Default Java version offered (supported: `17`, `21`, `25`), and the version of the target JDK |
+| `MODERNIZATION_TARGET_JAVA_HOME` | placeholder | Code | Home folder of the target JDK. **You must set it** |
+| `MODERNIZATION_TARGET_SPRING_BOOT_VERSION` | `4.1` | Code | Default Spring Boot version offered (supported: `3.5`, `4.1`) |
 | `MODERNIZATION_CODING_BUMP_BATCH_SIZE` | `1` | Code | Dependency bumps per build verification |
 | `MODERNIZATION_CODING_MAX_BUMPS` | `0` | Code | Max bumps per invocation (`0` = no limit) |
 
@@ -348,12 +351,24 @@ Which commands and files the agents may use **without asking**.
 
     Keep the two weights summing to **1**.
 
+!!! info "Two JDKs, switched automatically"
+
+    Everything that builds your code as it is today (discover, test, and the OpenRewrite migration)
+    runs on the **current** JDK. Every build after the migration runs on the **target** JDK. Each
+    script sets `JAVA_HOME` for its own run only, from these settings. If a home folder has no
+    `bin/java`, or runs a different version than declared, the script stops and names the
+    setting to fix. The code phase's pre-flight checks both JDKs before anything else. The
+    orchestrator records the current version as `gates.current_java_version` next to the target.
+
 Discover also accepts a few advanced variables (scanner choice, task timeouts). See
 [Discover](../discover/index.md).
 
-<!-- TODO: target versions — the default target versions above, the target named in
-     modernization-plan.md, and the versions the upgrade recipes support are being aligned in code.
-     Update this note once that is done. -->
+!!! warning "Target versions: the plan's text is not what gets applied"
+
+    `modernization-plan.md` always says *"Java 21 and Spring Boot 4.1 or later"*: that wording is
+    fixed in the plan template. The versions actually applied are the ones **you choose** when the
+    code phase starts. Supported targets are Java `17`, `21`, `25` and Spring Boot `3.5`, `4.1`.
+    There is no Spring Boot `4.1` recipe yet, so pre-flight rejects it.
 
 ### Permissions
 
@@ -463,12 +478,15 @@ stateDiagram-v2
     TEST_AWAITING_APPROVAL --> TEST_RUNNING: rejected
     CODING_RUNNING --> DONE: build green
     CODING_RUNNING --> CODING_RUNNING: failed, attempts left
-    CODING_RUNNING --> MITIGATION: failed, no attempts left
+    CODING_RUNNING --> ASK: failed, no attempts left
     DISCOVER_RUNNING --> FAILED: phase failed
     DETERMINE_RUNNING --> FAILED: phase failed
     TEST_RUNNING --> FAILED: phase failed
-    FAILED --> MITIGATION
-    state "FAILED / MITIGATION_WAIT" as MITIGATION
+    FAILED --> ASK
+    state "You choose: retry or abort" as ASK
+    ASK --> RETRY: retry
+    state "Failed phase runs again (PHASE_RUNNING)" as RETRY
+    ASK --> [*]: abort
     DONE --> [*]
 ```
 
@@ -478,8 +496,12 @@ stateDiagram-v2
 | `<PHASE>_RUNNING` | The phase's agent is working, or runs next turn |
 | `<PHASE>_AWAITING_APPROVAL` | Waiting for your decision. **Not stuck** |
 | `TEST_GATE_CHECK` | Next turn compares the score with the threshold |
-| `FAILED` | A phase failed. You are asked to retry or abort |
+| `FAILED` | Discover, determine or test failed. You are asked to retry or abort |
 | `DONE` | Green build. Branch ready for review |
+
+A failing **code** phase never enters `FAILED`. It stays in `CODING_RUNNING` and retries; once its
+attempts are used up you are asked to retry or abort. Choosing retry grants **one more attempt**.
+Abort just stops the session; the state is kept, so a later session asks you again.
 
 !!! tip "Not every stop is a failure"
 
@@ -504,7 +526,8 @@ A killed process **can never leave a half-written state file**.
     |---|---|---|
     | `state.json` | `run_id` | Unique ID for this run, also used in branch names |
     | `state.json` | `current_state` | Where the run is in the state machine |
-    | `state.json` | `phases.<phase>.status` | `pending` until you decide, then `approved` or `rejected` |
+    | `state.json` | `phases.<phase>.status` | `pending`, `running`, `awaiting_approval`, `approved`, `rejected`, `failed` or `remediating` (retrying after a failure). Also `skipped` for test, `completed` for code |
+    | `state.json` | `phases.<phase>.rejection_reason` | Your reason, passed to the agent when it re-runs. Cleared on approval |
     | `state.json` | `gates.*` | Settings snapshotted at run start, plus your chosen target versions |
     | `<phase>/state.json` | `status` | `running`, `reported`, `completed` or `failed` |
     | `<phase>/state.json` | `steps` | Which steps are done. This makes resume **step-level** |
@@ -515,7 +538,7 @@ A killed process **can never leave a half-written state file**.
     Phases are named `discover`, `determine`, `test` and `code` in state files and directories.
 
 To watch these during a run, see
-[monitoring](https://github.com/paul58914080/java-springboot-modernization-claude-agent/blob/main/docs/monitoring.md).
+[monitoring](https://github.com/CortexAIDevKit/java-springboot-modernize-claude-agent/blob/main/docs/monitoring.md).
 
 ---
 

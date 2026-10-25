@@ -149,7 +149,7 @@ dependency, and never touches `<dependencyManagement>`.
   .modernization/test/worktree .modernization/test/iterations/<attempt>
 ```
 
-This runs a real Maven build with JaCoCo, then PIT mutation testing in a separate temporary copy (so
+This runs a real Maven build on the **current** JDK (the code is not upgraded yet) with JaCoCo, then PIT mutation testing in a separate temporary copy (so
 the PIT plugin added for measurement never ends up in the `pom.xml` that gets committed), and scores
 the result with the same formula as the determine phase. It is a full measurement every time, not a
 cached one, so each round takes about as long as discover's coverage scans.

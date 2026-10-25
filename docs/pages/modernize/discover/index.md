@@ -125,7 +125,11 @@ is missing or is out of date runs again. You can see the plan without running an
 
 ### Stage 3: Preflight
 
-- Checks that `java` and either `./mvnw` or `mvn` are available. `./mvnw` is preferred when present.
+- Switches to the **current** JDK from `.claude/settings.json` (`MODERNIZATION_CURRENT_JAVA_VERSION`
+  and `MODERNIZATION_CURRENT_JAVA_HOME`), so every scan builds your code on the JDK it builds on
+  today. If that JDK is missing, or runs a different version than declared, discover stops and
+  names the setting to fix.
+- Checks that either `./mvnw` or `mvn` is available. `./mvnw` is preferred when present.
 - If the repository is a git work tree, adds `.modernization/` to `.gitignore` when that exact line is
   missing. If it is not a git work tree, warns that mutation testing will be skipped.
 - Copies the skill's bundled BOM catalog into `.modernization/discover/bom-catalog/`, replacing any
@@ -247,8 +251,10 @@ leads to a re-scan, "the report links are broken" leads to a rewrite.
 
 ## Configuration
 
-The discover phase has **no settings of its own in `settings.json`**. The three testability settings
-are copied into the run's state when it starts, but they are used by the determine phase:
+The discover phase builds on the **current** JDK (`MODERNIZATION_CURRENT_JAVA_VERSION` and
+`MODERNIZATION_CURRENT_JAVA_HOME`, see [Code](../code/index.md#which-jdk-builds-what)). Apart from
+that, it has **no settings of its own in `settings.json`**. The three testability settings are copied
+into the run's state when it starts, but they are used by the determine phase:
 
 | Variable | Default | Meaning | Effect in discover |
 |---|---|---|---|

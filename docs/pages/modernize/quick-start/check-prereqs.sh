@@ -125,7 +125,7 @@ else
   check_tool mvn   required "builds your project"
 fi
 check_tool jq      required "reads the pipeline's state files"
-check_tool python3 required "writes the determine-phase reports"
+check_tool python3 required "writes reports and edits pom.xml"
 check_tool grype   optional "vulnerability scan is skipped without it"
 
 if (( BASH_VERSINFO[0] < 3 )); then

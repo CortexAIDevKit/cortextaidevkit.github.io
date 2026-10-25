@@ -67,7 +67,7 @@ flowchart LR
 | **Outputs** | Branch `modernization/coding-agent-<run_id>`; `upgrade-worklist.csv`, `change-log.md`, `build-report.md`, refreshed `dependency-report.md`; `modernization-summary-report.md` |
 | **Human gate** | None. Judged by whether the build and tests pass. You review the branch afterwards |
 | **Human input** | Target Java and Spring Boot versions, asked once per run before the phase starts |
-| **On failure** | Retries up to `MODERNIZATION_CODING_MAX_ATTEMPTS` times, then asks you to retry or abort |
+| **On failure** | Retries up to `MODERNIZATION_CODING_MAX_ATTEMPTS` times, then asks you to retry (one more attempt) or abort |
 | **Next** | Done |
 | **Changes to your repository** | Only inside `.modernization/code/worktree`. Never merges or pushes |
 
@@ -79,13 +79,36 @@ Just before the code phase starts for the first time, the orchestrator asks you 
 Spring Boot versions to upgrade to. It offers `MODERNIZATION_TARGET_JAVA_VERSION` and
 `MODERNIZATION_TARGET_SPRING_BOOT_VERSION` as defaults and names the versions the upgrade skill has
 recipes for. Your answer is stored in `.modernization/state.json` as `gates.target_java_version` and
-`gates.target_spring_boot_version`.
+`gates.target_spring_boot_version`. The orchestrator also records `MODERNIZATION_CURRENT_JAVA_VERSION`
+as `gates.current_java_version`, without asking. The Java version you choose must not be newer
+than the target JDK in `MODERNIZATION_TARGET_JAVA_HOME`.
 
 The question is asked by the orchestrator because an agent cannot ask you anything. It is asked
 **once per run**: retries and resumed sessions reuse the stored answer.
 
-<!-- TODO: target versions — list the supported Java and Spring Boot targets here, and how they
-     relate to the target stated in modernization-plan.md, once these are aligned in code. -->
+| | Supported targets | Default offered |
+|---|---|---|
+| **Java** | `17`, `21`, `25` | `25` |
+| **Spring Boot** | `3.5`, `4.1` | `4.1` |
+
+!!! warning "Your answer wins over the plan"
+
+    `modernization-plan.md` always states *"Java 21 and Spring Boot 4.1 or later"* as fixed template
+    text. The code phase applies **only the versions you choose here**. Spring Boot `4.1` has no
+    recipe yet, so pre-flight rejects it and names the versions that are available.
+
+### Which JDK builds what
+
+The pipeline uses two JDKs, both set in `.claude/settings.json`:
+
+- The **current** JDK (`MODERNIZATION_CURRENT_JAVA_VERSION` and `MODERNIZATION_CURRENT_JAVA_HOME`)
+  is the one your project builds on today. Discover, test and the OpenRewrite migration itself run
+  on it, because they all build the code before it is upgraded.
+- The **target** JDK (`MODERNIZATION_TARGET_JAVA_VERSION` and `MODERNIZATION_TARGET_JAVA_HOME`) is
+  the one you upgrade to. Every build after the migration runs on it.
+
+Each script sets `JAVA_HOME` for its own run only. Your shell, `sdk default` and the project's
+`.sdkmanrc` are left alone, so you never switch JDKs by hand.
 
 ### Pre-flight checks
 
@@ -97,15 +120,20 @@ Nothing is touched until both halves pass. If either fails, the agent records
 in `.modernization/determine/`; discover's `effective-pom`, `version-updates` and `bom-catalog`
 folders exist; and the repository is a git work tree.
 
-**Environment.** `upgrade-java-spring-boot/scripts/pre-flight.sh` checks, reporting every problem
-rather than stopping at the first:
+**Environment.** `upgrade-java-spring-boot/scripts/pre-flight.sh` checks:
 
-1. **A recipe exists for each requested version.** The list of supported versions is read from the
+1. **Both JDKs exist.** For the current and the target JDK, both settings must be set, the home
+   folder must contain `bin/java`, and that `java` must report the version you declared. If either
+   JDK fails, pre-flight prints the reason for each one and **stops immediately**, without running
+   the checks below.
+2. **A recipe exists for each requested version.** The list of supported versions is read from the
    recipe folders on disk, so it cannot drift from what is actually available.
-2. **Maven's JDK is at least the target version**, read from `mvn -v`. This is a hard check. A
-   different `java` on your `PATH`, or an unset `JAVA_HOME`, only produces a warning. The check is
-   "at least", not "equal": building for Java 21 on JDK 25 is fine.
-3. **Project structure**: root POM present, any requested module declared, POM well-formed.
+3. **The JDKs fit the upgrade.** The target JDK must be at least the Java version you chose
+   ("at least", not "equal": building for Java 21 on JDK 25 is fine). After switching to the current
+   JDK, `mvn -v` must report it. This catches a `~/.mavenrc` that overrides `JAVA_HOME`.
+4. **Project structure**: root POM present, any requested module declared, POM well-formed.
+
+Checks 2 to 4 report every problem rather than stopping at the first.
 
 ## What it does
 
@@ -150,8 +178,7 @@ git worktree add .modernization/code/worktree -b modernization/coding-agent-<run
 
 **The base is the test branch when one is recorded.** If `.modernization/test/state.json` has
 `outputs.worktree_branch`, the code branch starts from it, so the upgrade is verified against the
-improved tests. Otherwise it starts from `HEAD`. The choice is stored as `outputs.base_ref`. (See
-[Known gaps](#known-gaps).)
+improved tests. Otherwise it starts from `HEAD`. The choice is stored as `outputs.base_ref`.
 
 If the worktree already exists, the agent reuses it, first discarding any **uncommitted** changes.
 Every verified change is already committed, so anything uncommitted is unverified work from an
@@ -163,8 +190,11 @@ interrupted session. It then resumes at the first stage not marked completed.
 apply-recipes.sh --workdir .modernization/code/worktree \
   --output-dir .modernization/code/upgrade-java-spring-boot \
   --java-version <v> --spring-boot-version <v>
-build-verify.sh .modernization/code/worktree .modernization/code/build-verify/stage-a
+build-verify.sh .modernization/code/worktree .modernization/code/build-verify/stage-a --jdk target
 ```
+
+`apply-recipes.sh` runs on the current JDK. From here on, every `build-verify.sh` call in the
+phase uses `--jdk target`, and so does the inventory re-run in stage B.
 
 `apply-recipes.sh` combines the recipe files for the requested versions into one `rewrite.yml` and
 runs `mvn rewrite:run`, with a one-hour timeout by default. Its status line reports how many files
@@ -285,7 +315,7 @@ status line plus `build-summary.json`. Its exit codes:
 | `1` | Build failed; see `build-errors.txt` |
 | `3` | Build succeeded but the tests did not really run |
 | `124` | Timed out (default one hour) |
-| `2` | Usage error |
+| `2` | Usage error, including a missing `--jdk`, or a JDK that is missing or not the version declared for it |
 
 **Every commit is independently green.** One change, one verification, one commit. `git log` on the
 branch is a list of verified steps.
@@ -316,7 +346,7 @@ Commits use [Conventional Commits](https://www.conventionalcommits.org/) with ty
 the skill that drove the change, and the build result in the body:
 
 ```
-build(upgrade-java-spring-boot): upgrade to Java 21 and Spring Boot 4.0
+build(upgrade-java-spring-boot): upgrade to Java 21 and Spring Boot 4.1
 build(dependency-upgrade): drop 14 versions managed by spring-boot-dependencies
 build(dependency-upgrade): bump ${kotlin.version} to 2.4.20
 
@@ -384,8 +414,11 @@ it locally. Pushing requires your confirmation; `git push` is never allowed auto
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `MODERNIZATION_TARGET_JAVA_VERSION` | `25` | Default Java version offered when you are asked for the target |
-| `MODERNIZATION_TARGET_SPRING_BOOT_VERSION` | `4.0` | Default Spring Boot version offered |
+| `MODERNIZATION_CURRENT_JAVA_VERSION` | `17` | Java version of the JDK the project builds on today |
+| `MODERNIZATION_CURRENT_JAVA_HOME` | `/path/to/jdk-17` | Home folder of that JDK. **Must be set**: the shipped value is a placeholder |
+| `MODERNIZATION_TARGET_JAVA_VERSION` | `25` | Default Java version offered when you are asked for the target. Also the version of the target JDK |
+| `MODERNIZATION_TARGET_JAVA_HOME` | `/path/to/jdk-25` | Home folder of the target JDK. **Must be set**: the shipped value is a placeholder |
+| `MODERNIZATION_TARGET_SPRING_BOOT_VERSION` | `4.1` | Default Spring Boot version offered |
 | `MODERNIZATION_CODING_MAX_ATTEMPTS` | `3` | Code phase attempts before asking you to retry or abort |
 | `MODERNIZATION_CODING_BUMP_BATCH_SIZE` | `1` | Bumps applied per build verification. Larger is faster but makes a failure harder to pin down |
 | `MODERNIZATION_CODING_MAX_BUMPS` | `0` | Maximum bumps per code-phase invocation; `0` means no limit. Rows over the limit are marked `deferred` |
@@ -394,26 +427,15 @@ The target defaults are read when the orchestrator asks you; your answer is then
 `MODERNIZATION_CODING_MAX_ATTEMPTS` is copied into the phase's `max_attempts` when the phase first
 starts. Batch size and maximum bumps are read when stage D runs.
 
-## Known gaps
-
-- **The code phase may not build on the test branch.** The test agent does not currently record
-  `outputs.worktree_branch`, so the code branch may start from `HEAD` instead of the test branch.
-  Check `outputs.base_ref` in `.modernization/code/state.json`. If it is `HEAD` and you want the new
-  tests included, merge the test branch into the code branch yourself before reviewing.
-- **`inventory-orchestrator.sh` can hang after its tasks finish**, which blocks stage B when running
-  unattended. The artifacts are complete and correct when this happens; the process does not exit.
-- **The stage A repair loop and the attempt-cap escalation** have not yet been exercised against a
-  real failing migration.
-
-<!-- TODO: target versions — add the gap between the plan's stated target and the available
-     recipes here, or remove this note, once resolved in code. -->
-
 ## Troubleshooting
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| Pre-flight: JDK too old | Maven runs on an older JDK than the target, often because `JAVA_HOME` points to it | Set `JAVA_HOME` to a newer JDK and check `mvn -v` |
-| Pre-flight: no recipe for the requested version | The chosen version is not in the recipe folders | Choose a listed version |
+| Pre-flight `STOPPED`: no executable `bin/java` | A `MODERNIZATION_*_JAVA_HOME` setting still holds the placeholder, or points to the wrong folder | Set it to the JDK's home folder, the one that contains `bin/java` (for SDKMAN, `~/.sdkman/candidates/java/<identifier>`), then retry |
+| Pre-flight `STOPPED`: declared as Java X but runs Java Y | The version setting does not match the JDK at that path | Fix whichever of the pair is wrong, then retry |
+| Pre-flight: target JDK older than the chosen Java version | You chose, say, Java 25 but the target JDK is 21 | Point the target JDK settings at JDK 25 or newer, or choose a lower version |
+| Pre-flight: Maven runs on a different JDK than the current one | `~/.mavenrc`, `/etc/mavenrc` or `MAVEN_OPTS` overrides `JAVA_HOME` | Remove that override |
+| Pre-flight: no recipe for the requested version | The chosen version is not in the recipe folders (for example Spring Boot `4.0`) | Choose a supported version. The answer is stored for the run, so to change it run `.claude/skills/orchestrator/scripts/state-set.sh .modernization/state.json gates.target_spring_boot_version=4.1`, then retry |
 | Phase failed at `java_spring_upgrade` | OpenRewrite left breakage the agent could not repair | Read `build-verify/stage-a/build-errors.txt` and `upgrade-java-spring-boot/rewrite-errors.txt`; fix in the worktree or adjust targets, then retry |
 | A bump keeps failing | The new version is incompatible with your code or other dependencies | Expected; it is listed under "Deferred and failed" for a person to handle |
 | Stage B never finishes | The `inventory` hang described in Known gaps | Check that `effective-pom` and `version-updates` show `state=SUCCESS` in their `logs/status` files under `.modernization/code/worktree/.modernization/discover/`, then stop the session and resume. Successful tasks are reused, so the re-run is short |

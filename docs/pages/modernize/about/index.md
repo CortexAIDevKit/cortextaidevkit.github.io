@@ -4,7 +4,7 @@
 
 # Keep every Java service current. **Without the heroics.**
 
-<p class="hero__lead">An orchestrated pipeline of Claude agents that upgrades Java and Spring Boot services consistently, safely and repeatably, with a human approving every step.</p>
+<p class="hero__lead">An orchestrated pipeline of Claude agents that upgrades Java and Spring Boot services consistently, safely and repeatably, with a human approving every plan and reviewing every change.</p>
 
 <div class="hero__actions" markdown>
 
@@ -109,7 +109,7 @@ Upgrading *one* app isn't hard. Doing it **consistently, safely and repeatedly a
 
 ## A controlled workflow, not one giant prompt { #how-it-works }
 
-Not a single prompt that says *"upgrade my app"*. Each agent has **one job**, and **a human approves every phase** before the next one starts.
+Not a single prompt that says *"upgrade my app"*. Each agent has **one job**, and **a human approves each report** before the next phase starts.
 
 <div class="grid cards phases" markdown>
 

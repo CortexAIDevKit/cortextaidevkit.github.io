@@ -190,8 +190,12 @@ in the phase that involves judgment. The plan has five sections:
 | 4. Dependency and plugin upgrades plan | Whether the root POM's parent should be upgraded first; the target versions; a statement that the code phase handles the remaining upgrades and code changes |
 | 5. Modernization gains | What approving the plan should achieve: CVEs resolved, dependencies and plugins brought current, end-of-life exposure removed, test improvement if the test phase runs. Quantified only where the reports support it |
 
-<!-- TODO: target versions — section 4 states a fixed target in the plan template. Describe it here
-     once the plan template, settings.json defaults and available upgrade recipes are aligned in code. -->
+!!! warning "Section 4's target is fixed text"
+
+    Section 4 always says *"Java 21 and Spring Boot 4.1 or later"*. The plan template hard-codes this;
+    it is not derived from your project or your settings. The versions actually applied are the ones
+    you choose when the code phase starts (supported: Java `17`, `21`, `25`; Spring Boot `3.5`, `4.1`).
+    See [Code → Target version selection](../code/index.md#target-version-selection).
 
 Section 4 deliberately does not reason about individual dependencies or name OpenRewrite recipes.
 That work belongs to the code phase, which re-checks dependency facts after the upgrade.
