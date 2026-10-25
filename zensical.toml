@@ -20,7 +20,8 @@ nav = [
     ] }
 ]
 
-extra_css = ["stylesheets/custom.css", "stylesheets/typography.css"]
+extra_css = ["stylesheets/custom.css", "stylesheets/typography.css", "stylesheets/zoom.css"]
+extra_javascript = ["javascripts/zoom.js"]
 
 [project.theme]
 custom_dir = "overrides"

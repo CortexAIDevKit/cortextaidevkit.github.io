@@ -3,6 +3,16 @@
 
 {% block extrahead %}
 <link rel="apple-touch-icon" href="{{ 'img/apple-touch-icon.png' | url }}">
+<!-- Mermaid diagrams render into a closed shadow root; keep it open so they can be magnified -->
+<script>
+  (function () {
+    var attach = Element.prototype.attachShadow;
+    Element.prototype.attachShadow = function (init) {
+      if (this.classList.contains("mermaid")) init = Object.assign({}, init, { mode: "open" });
+      return attach.call(this, init);
+    };
+  })();
+</script>
 {% endblock %}
 
 <!-- More minimal footer -->
