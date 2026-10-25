@@ -1068,11 +1068,11 @@ are encoded once as a lookup table in a read-only script.</p>
     DETA --&gt;|" produces "| DETR[("modernization-plan.md")]
     DETR --&gt;|" reviewed by "| OA
     OA -.-&gt;|" rejected → revise "| DETA
-    OA --&gt;|" 3. testability &lt; 80% → calls "| TA["test-agent"]
+    OA --&gt;|" 3. score &lt; threshold → calls "| TA["test-agent"]
     TA --&gt;|" produces "| TR[("tests + testability-report.md")]
     TR --&gt;|" reviewed by "| OA
     OA -.-&gt;|" rejected → revise "| TA
-    OA --&gt;|" 4. testability ≥ 80% → calls "| CA["coding-agent"]
+    OA --&gt;|" 4. score ≥ threshold, or test approved → calls "| CA["coding-agent"]
     CA --&gt;|" once the build passes "| MP[("upgrade + modernization-summary-report.md")]</code></pre>
 </div>
 <p>You approve each phase's report before the next one starts. <strong>Test</strong> runs only when the testability
@@ -1255,7 +1255,7 @@ summaries, never raw build output, so their context stays small.</p>
 <tbody>
 <tr>
 <td><code>RUN_AGENT</code></td>
-<td>Invokes the next phase agent and records the session</td>
+<td>Invokes the next phase agent and records the session. Before the first <code>coding-agent</code> run, it asks you for the target versions</td>
 </tr>
 <tr>
 <td><code>AWAIT_APPROVAL</code></td>
@@ -1328,16 +1328,34 @@ summaries, never raw build output, so their context stays small.</p>
 <td>Attempts before asking you to retry or abort</td>
 </tr>
 <tr>
+<td><code>MODERNIZATION_CURRENT_JAVA_VERSION</code></td>
+<td><code>17</code></td>
+<td>All</td>
+<td>Java version of the JDK your project builds on today</td>
+</tr>
+<tr>
+<td><code>MODERNIZATION_CURRENT_JAVA_HOME</code></td>
+<td>placeholder</td>
+<td>All</td>
+<td>Home folder of that JDK. <strong>You must set it</strong></td>
+</tr>
+<tr>
 <td><code>MODERNIZATION_TARGET_JAVA_VERSION</code></td>
 <td><code>25</code></td>
 <td>Code</td>
-<td>Default Java version offered</td>
+<td>Default Java version offered (supported: <code>17</code>, <code>21</code>, <code>25</code>), and the version of the target JDK</td>
+</tr>
+<tr>
+<td><code>MODERNIZATION_TARGET_JAVA_HOME</code></td>
+<td>placeholder</td>
+<td>Code</td>
+<td>Home folder of the target JDK. <strong>You must set it</strong></td>
 </tr>
 <tr>
 <td><code>MODERNIZATION_TARGET_SPRING_BOOT_VERSION</code></td>
-<td><code>4.0</code></td>
+<td><code>4.1</code></td>
 <td>Code</td>
-<td>Default Spring Boot version offered</td>
+<td>Default Spring Boot version offered (supported: <code>3.5</code>, <code>4.1</code>)</td>
 </tr>
 <tr>
 <td><code>MODERNIZATION_CODING_BUMP_BATCH_SIZE</code></td>
@@ -1358,12 +1376,24 @@ summaries, never raw build output, so their context stays small.</p>
 <p><strong>line coverage % × JaCoCo weight + PIT strength % × PIT weight</strong></p>
 <p>Keep the two weights summing to <strong>1</strong>.</p>
 </div>
+<div class="admonition info">
+<p class="admonition-title">Two JDKs, switched automatically</p>
+<p>Everything that builds your code as it is today (discover, test, and the OpenRewrite migration)
+runs on the <strong>current</strong> JDK. Every build after the migration runs on the <strong>target</strong> JDK. Each
+script sets <code>JAVA_HOME</code> for its own run only, from these settings. If a home folder has no
+<code>bin/java</code>, or runs a different version than declared, the script stops and names the
+setting to fix. The code phase's pre-flight checks both JDKs before anything else. The
+orchestrator records the current version as <code>gates.current_java_version</code> next to the target.</p>
+</div>
 <p>Discover also accepts a few advanced variables (scanner choice, task timeouts). See
 <a href="../discover/">Discover</a>.</p>
-<!-- TODO: target versions — the default target versions above, the target named in
-     modernization-plan.md, and the versions the upgrade recipes support are being aligned in code.
-     Update this note once that is done. -->
-
+<div class="admonition warning">
+<p class="admonition-title">Target versions: the plan's text is not what gets applied</p>
+<p><code>modernization-plan.md</code> always says <em>"Java 21 and Spring Boot 4.1 or later"</em>: that wording is
+fixed in the plan template. The versions actually applied are the ones <strong>you choose</strong> when the
+code phase starts. Supported targets are Java <code>17</code>, <code>21</code>, <code>25</code> and Spring Boot <code>3.5</code>, <code>4.1</code>.
+There is no Spring Boot <code>4.1</code> recipe yet, so pre-flight rejects it.</p>
+</div>
 <h3 id="permissions">Permissions<a class="headerlink" href="#permissions" title="Permanent link">&para;</a></h3>
 <div class="admonition success">
 <p class="admonition-title">Allowed without asking</p>
@@ -1464,12 +1494,15 @@ it is missing. You will see it as an <strong>uncommitted edit</strong>.</p>
     TEST_AWAITING_APPROVAL --&gt; TEST_RUNNING: rejected
     CODING_RUNNING --&gt; DONE: build green
     CODING_RUNNING --&gt; CODING_RUNNING: failed, attempts left
-    CODING_RUNNING --&gt; MITIGATION: failed, no attempts left
+    CODING_RUNNING --&gt; ASK: failed, no attempts left
     DISCOVER_RUNNING --&gt; FAILED: phase failed
     DETERMINE_RUNNING --&gt; FAILED: phase failed
     TEST_RUNNING --&gt; FAILED: phase failed
-    FAILED --&gt; MITIGATION
-    state "FAILED / MITIGATION_WAIT" as MITIGATION
+    FAILED --&gt; ASK
+    state "You choose: retry or abort" as ASK
+    ASK --&gt; RETRY: retry
+    state "Failed phase runs again (PHASE_RUNNING)" as RETRY
+    ASK --&gt; [*]: abort
     DONE --&gt; [*]</code></pre>
 <table>
 <thead>
@@ -1497,7 +1530,7 @@ it is missing. You will see it as an <strong>uncommitted edit</strong>.</p>
 </tr>
 <tr>
 <td><code>FAILED</code></td>
-<td>A phase failed. You are asked to retry or abort</td>
+<td>Discover, determine or test failed. You are asked to retry or abort</td>
 </tr>
 <tr>
 <td><code>DONE</code></td>
@@ -1505,6 +1538,9 @@ it is missing. You will see it as an <strong>uncommitted edit</strong>.</p>
 </tr>
 </tbody>
 </table>
+<p>A failing <strong>code</strong> phase never enters <code>FAILED</code>. It stays in <code>CODING_RUNNING</code> and retries; once its
+attempts are used up you are asked to retry or abort. Choosing retry grants <strong>one more attempt</strong>.
+Abort just stops the session; the state is kept, so a later session asks you again.</p>
 <div class="admonition tip">
 <p class="admonition-title">Not every stop is a failure</p>
 <ul>
@@ -1566,7 +1602,12 @@ A killed process <strong>can never leave a half-written state file</strong>.</p>
 <tr>
 <td><code>state.json</code></td>
 <td><code>phases.&lt;phase&gt;.status</code></td>
-<td><code>pending</code> until you decide, then <code>approved</code> or <code>rejected</code></td>
+<td><code>pending</code>, <code>running</code>, <code>awaiting_approval</code>, <code>approved</code>, <code>rejected</code>, <code>failed</code> or <code>remediating</code> (retrying after a failure). Also <code>skipped</code> for test, <code>completed</code> for code</td>
+</tr>
+<tr>
+<td><code>state.json</code></td>
+<td><code>phases.&lt;phase&gt;.rejection_reason</code></td>
+<td>Your reason, passed to the agent when it re-runs. Cleared on approval</td>
 </tr>
 <tr>
 <td><code>state.json</code></td>
@@ -1603,7 +1644,7 @@ A killed process <strong>can never leave a half-written state file</strong>.</p>
 <p>Phases are named <code>discover</code>, <code>determine</code>, <code>test</code> and <code>code</code> in state files and directories.</p>
 </details>
 <p>To watch these during a run, see
-<a href="https://github.com/paul58914080/java-springboot-modernization-claude-agent/blob/main/docs/monitoring.md">monitoring</a>.</p>
+<a href="https://github.com/CortexAIDevKit/java-springboot-modernize-claude-agent/blob/main/docs/monitoring.md">monitoring</a>.</p>
 <hr />
 <div class="grid cards phases">
 <ul>

@@ -623,6 +623,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#which-jdk-builds-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Which JDK builds what
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-flight-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -781,17 +792,6 @@
     <span class="md-ellipsis">
       <span class="md-typeset">
         Configuration
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#known-gaps" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Known gaps
       </span>
     </span>
   </a>
@@ -929,6 +929,17 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#which-jdk-builds-what" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Which JDK builds what
+      </span>
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#pre-flight-checks" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1094,17 +1105,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#known-gaps" class="md-nav__link">
-    <span class="md-ellipsis">
-      <span class="md-typeset">
-        Known gaps
-      </span>
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#troubleshooting" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -1215,7 +1215,7 @@ behaviour in production, which is why the branch is left for a person to review 
 </tr>
 <tr>
 <td><strong>On failure</strong></td>
-<td>Retries up to <code>MODERNIZATION_CODING_MAX_ATTEMPTS</code> times, then asks you to retry or abort</td>
+<td>Retries up to <code>MODERNIZATION_CODING_MAX_ATTEMPTS</code> times, then asks you to retry (one more attempt) or abort</td>
 </tr>
 <tr>
 <td><strong>Next</strong></td>
@@ -1233,12 +1233,49 @@ behaviour in production, which is why the branch is left for a person to review 
 Spring Boot versions to upgrade to. It offers <code>MODERNIZATION_TARGET_JAVA_VERSION</code> and
 <code>MODERNIZATION_TARGET_SPRING_BOOT_VERSION</code> as defaults and names the versions the upgrade skill has
 recipes for. Your answer is stored in <code>.modernization/state.json</code> as <code>gates.target_java_version</code> and
-<code>gates.target_spring_boot_version</code>.</p>
+<code>gates.target_spring_boot_version</code>. The orchestrator also records <code>MODERNIZATION_CURRENT_JAVA_VERSION</code>
+as <code>gates.current_java_version</code>, without asking. The Java version you choose must not be newer
+than the target JDK in <code>MODERNIZATION_TARGET_JAVA_HOME</code>.</p>
 <p>The question is asked by the orchestrator because an agent cannot ask you anything. It is asked
 <strong>once per run</strong>: retries and resumed sessions reuse the stored answer.</p>
-<!-- TODO: target versions — list the supported Java and Spring Boot targets here, and how they
-     relate to the target stated in modernization-plan.md, once these are aligned in code. -->
-
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Supported targets</th>
+<th>Default offered</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Java</strong></td>
+<td><code>17</code>, <code>21</code>, <code>25</code></td>
+<td><code>25</code></td>
+</tr>
+<tr>
+<td><strong>Spring Boot</strong></td>
+<td><code>3.5</code>, <code>4.1</code></td>
+<td><code>4.1</code></td>
+</tr>
+</tbody>
+</table>
+<div class="admonition warning">
+<p class="admonition-title">Your answer wins over the plan</p>
+<p><code>modernization-plan.md</code> always states <em>"Java 21 and Spring Boot 4.1 or later"</em> as fixed template
+text. The code phase applies <strong>only the versions you choose here</strong>. Spring Boot <code>4.1</code> has no
+recipe yet, so pre-flight rejects it and names the versions that are available.</p>
+</div>
+<h3 id="which-jdk-builds-what">Which JDK builds what<a class="headerlink" href="#which-jdk-builds-what" title="Permanent link">&para;</a></h3>
+<p>The pipeline uses two JDKs, both set in <code>.claude/settings.json</code>:</p>
+<ul>
+<li>The <strong>current</strong> JDK (<code>MODERNIZATION_CURRENT_JAVA_VERSION</code> and <code>MODERNIZATION_CURRENT_JAVA_HOME</code>)
+  is the one your project builds on today. Discover, test and the OpenRewrite migration itself run
+  on it, because they all build the code before it is upgraded.</li>
+<li>The <strong>target</strong> JDK (<code>MODERNIZATION_TARGET_JAVA_VERSION</code> and <code>MODERNIZATION_TARGET_JAVA_HOME</code>) is
+  the one you upgrade to. Every build after the migration runs on it.</li>
+</ul>
+<p>Each script sets <code>JAVA_HOME</code> for its own run only. Your shell, <code>sdk default</code> and the project's
+<code>.sdkmanrc</code> are left alone, so you never switch JDKs by hand.</p>
 <h3 id="pre-flight-checks">Pre-flight checks<a class="headerlink" href="#pre-flight-checks" title="Permanent link">&para;</a></h3>
 <p>Nothing is touched until both halves pass. If either fails, the agent records
 <code>error.step: preflight</code> and stops without creating a worktree.</p>
@@ -1246,16 +1283,20 @@ recipes for. Your answer is stored in <code>.modernization/state.json</code> as 
 <code>modernization-plan.md</code>, <code>dependency-report.md</code>, <code>plugin-report.md</code> and <code>testability-report.md</code> exist
 in <code>.modernization/determine/</code>; discover's <code>effective-pom</code>, <code>version-updates</code> and <code>bom-catalog</code>
 folders exist; and the repository is a git work tree.</p>
-<p><strong>Environment.</strong> <code>upgrade-java-spring-boot/scripts/pre-flight.sh</code> checks, reporting every problem
-rather than stopping at the first:</p>
+<p><strong>Environment.</strong> <code>upgrade-java-spring-boot/scripts/pre-flight.sh</code> checks:</p>
 <ol>
+<li><strong>Both JDKs exist.</strong> For the current and the target JDK, both settings must be set, the home
+   folder must contain <code>bin/java</code>, and that <code>java</code> must report the version you declared. If either
+   JDK fails, pre-flight prints the reason for each one and <strong>stops immediately</strong>, without running
+   the checks below.</li>
 <li><strong>A recipe exists for each requested version.</strong> The list of supported versions is read from the
    recipe folders on disk, so it cannot drift from what is actually available.</li>
-<li><strong>Maven's JDK is at least the target version</strong>, read from <code>mvn -v</code>. This is a hard check. A
-   different <code>java</code> on your <code>PATH</code>, or an unset <code>JAVA_HOME</code>, only produces a warning. The check is
-   "at least", not "equal": building for Java 21 on JDK 25 is fine.</li>
+<li><strong>The JDKs fit the upgrade.</strong> The target JDK must be at least the Java version you chose
+   ("at least", not "equal": building for Java 21 on JDK 25 is fine). After switching to the current
+   JDK, <code>mvn -v</code> must report it. This catches a <code>~/.mavenrc</code> that overrides <code>JAVA_HOME</code>.</li>
 <li><strong>Project structure</strong>: root POM present, any requested module declared, POM well-formed.</li>
 </ol>
+<p>Checks 2 to 4 report every problem rather than stopping at the first.</p>
 <h2 id="what-it-does">What it does<a class="headerlink" href="#what-it-does" title="Permanent link">&para;</a></h2>
 <p>After pre-flight, the agent upgrades the code in a separate worktree, one stage at a time. Each
 change is verified with a Maven build and test run before it is committed.</p>
@@ -1317,8 +1358,7 @@ completed, not treated as failures, and no empty commit is made.</p>
 </span></code></pre></div>
 <p><strong>The base is the test branch when one is recorded.</strong> If <code>.modernization/test/state.json</code> has
 <code>outputs.worktree_branch</code>, the code branch starts from it, so the upgrade is verified against the
-improved tests. Otherwise it starts from <code>HEAD</code>. The choice is stored as <code>outputs.base_ref</code>. (See
-<a href="#known-gaps">Known gaps</a>.)</p>
+improved tests. Otherwise it starts from <code>HEAD</code>. The choice is stored as <code>outputs.base_ref</code>.</p>
 <p>If the worktree already exists, the agent reuses it, first discarding any <strong>uncommitted</strong> changes.
 Every verified change is already committed, so anything uncommitted is unverified work from an
 interrupted session. It then resumes at the first stage not marked completed.</p>
@@ -1326,8 +1366,10 @@ interrupted session. It then resumes at the first stage not marked completed.</p
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>apply-recipes.sh<span class="w"> </span>--workdir<span class="w"> </span>.modernization/code/worktree<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>--output-dir<span class="w"> </span>.modernization/code/upgrade-java-spring-boot<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span>--java-version<span class="w"> </span>&lt;v&gt;<span class="w"> </span>--spring-boot-version<span class="w"> </span>&lt;v&gt;
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>build-verify.sh<span class="w"> </span>.modernization/code/worktree<span class="w"> </span>.modernization/code/build-verify/stage-a
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>build-verify.sh<span class="w"> </span>.modernization/code/worktree<span class="w"> </span>.modernization/code/build-verify/stage-a<span class="w"> </span>--jdk<span class="w"> </span>target
 </span></code></pre></div>
+<p><code>apply-recipes.sh</code> runs on the current JDK. From here on, every <code>build-verify.sh</code> call in the
+phase uses <code>--jdk target</code>, and so does the inventory re-run in stage B.</p>
 <p><code>apply-recipes.sh</code> combines the recipe files for the requested versions into one <code>rewrite.yml</code> and
 runs <code>mvn rewrite:run</code>, with a one-hour timeout by default. Its status line reports how many files
 changed.</p>
@@ -1491,7 +1533,7 @@ status line plus <code>build-summary.json</code>. Its exit codes:</p>
 </tr>
 <tr>
 <td><code>2</code></td>
-<td>Usage error</td>
+<td>Usage error, including a missing <code>--jdk</code>, or a JDK that is missing or not the version declared for it</td>
 </tr>
 </tbody>
 </table>
@@ -1517,7 +1559,7 @@ services, performance, or anything your tests do not cover.</p>
 <h3 id="commits">Commits<a class="headerlink" href="#commits" title="Permanent link">&para;</a></h3>
 <p>Commits use <a href="https://www.conventionalcommits.org/">Conventional Commits</a> with type <code>build</code>, scoped by
 the skill that drove the change, and the build result in the body:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>build(upgrade-java-spring-boot): upgrade to Java 21 and Spring Boot 4.0
+<div class="language-text highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>build(upgrade-java-spring-boot): upgrade to Java 21 and Spring Boot 4.1
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>build(dependency-upgrade): drop 14 versions managed by spring-boot-dependencies
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>build(dependency-upgrade): bump ${kotlin.version} to 2.4.20
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
@@ -1616,13 +1658,28 @@ it locally. Pushing requires your confirmation; <code>git push</code> is never a
 </thead>
 <tbody>
 <tr>
+<td><code>MODERNIZATION_CURRENT_JAVA_VERSION</code></td>
+<td><code>17</code></td>
+<td>Java version of the JDK the project builds on today</td>
+</tr>
+<tr>
+<td><code>MODERNIZATION_CURRENT_JAVA_HOME</code></td>
+<td><code>/path/to/jdk-17</code></td>
+<td>Home folder of that JDK. <strong>Must be set</strong>: the shipped value is a placeholder</td>
+</tr>
+<tr>
 <td><code>MODERNIZATION_TARGET_JAVA_VERSION</code></td>
 <td><code>25</code></td>
-<td>Default Java version offered when you are asked for the target</td>
+<td>Default Java version offered when you are asked for the target. Also the version of the target JDK</td>
+</tr>
+<tr>
+<td><code>MODERNIZATION_TARGET_JAVA_HOME</code></td>
+<td><code>/path/to/jdk-25</code></td>
+<td>Home folder of the target JDK. <strong>Must be set</strong>: the shipped value is a placeholder</td>
 </tr>
 <tr>
 <td><code>MODERNIZATION_TARGET_SPRING_BOOT_VERSION</code></td>
-<td><code>4.0</code></td>
+<td><code>4.1</code></td>
 <td>Default Spring Boot version offered</td>
 </tr>
 <tr>
@@ -1645,20 +1702,6 @@ it locally. Pushing requires your confirmation; <code>git push</code> is never a
 <p>The target defaults are read when the orchestrator asks you; your answer is then fixed for the run.
 <code>MODERNIZATION_CODING_MAX_ATTEMPTS</code> is copied into the phase's <code>max_attempts</code> when the phase first
 starts. Batch size and maximum bumps are read when stage D runs.</p>
-<h2 id="known-gaps">Known gaps<a class="headerlink" href="#known-gaps" title="Permanent link">&para;</a></h2>
-<ul>
-<li><strong>The code phase may not build on the test branch.</strong> The test agent does not currently record
-  <code>outputs.worktree_branch</code>, so the code branch may start from <code>HEAD</code> instead of the test branch.
-  Check <code>outputs.base_ref</code> in <code>.modernization/code/state.json</code>. If it is <code>HEAD</code> and you want the new
-  tests included, merge the test branch into the code branch yourself before reviewing.</li>
-<li><strong><code>inventory-orchestrator.sh</code> can hang after its tasks finish</strong>, which blocks stage B when running
-  unattended. The artifacts are complete and correct when this happens; the process does not exit.</li>
-<li><strong>The stage A repair loop and the attempt-cap escalation</strong> have not yet been exercised against a
-  real failing migration.</li>
-</ul>
-<!-- TODO: target versions — add the gap between the plan's stated target and the available
-     recipes here, or remove this note, once resolved in code. -->
-
 <h2 id="troubleshooting">Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permanent link">&para;</a></h2>
 <table>
 <thead>
@@ -1670,14 +1713,29 @@ starts. Batch size and maximum bumps are read when stage D runs.</p>
 </thead>
 <tbody>
 <tr>
-<td>Pre-flight: JDK too old</td>
-<td>Maven runs on an older JDK than the target, often because <code>JAVA_HOME</code> points to it</td>
-<td>Set <code>JAVA_HOME</code> to a newer JDK and check <code>mvn -v</code></td>
+<td>Pre-flight <code>STOPPED</code>: no executable <code>bin/java</code></td>
+<td>A <code>MODERNIZATION_*_JAVA_HOME</code> setting still holds the placeholder, or points to the wrong folder</td>
+<td>Set it to the JDK's home folder, the one that contains <code>bin/java</code> (for SDKMAN, <code>~/.sdkman/candidates/java/&lt;identifier&gt;</code>), then retry</td>
+</tr>
+<tr>
+<td>Pre-flight <code>STOPPED</code>: declared as Java X but runs Java Y</td>
+<td>The version setting does not match the JDK at that path</td>
+<td>Fix whichever of the pair is wrong, then retry</td>
+</tr>
+<tr>
+<td>Pre-flight: target JDK older than the chosen Java version</td>
+<td>You chose, say, Java 25 but the target JDK is 21</td>
+<td>Point the target JDK settings at JDK 25 or newer, or choose a lower version</td>
+</tr>
+<tr>
+<td>Pre-flight: Maven runs on a different JDK than the current one</td>
+<td><code>~/.mavenrc</code>, <code>/etc/mavenrc</code> or <code>MAVEN_OPTS</code> overrides <code>JAVA_HOME</code></td>
+<td>Remove that override</td>
 </tr>
 <tr>
 <td>Pre-flight: no recipe for the requested version</td>
-<td>The chosen version is not in the recipe folders</td>
-<td>Choose a listed version</td>
+<td>The chosen version is not in the recipe folders (for example Spring Boot <code>4.0</code>)</td>
+<td>Choose a supported version. The answer is stored for the run, so to change it run <code>.claude/skills/orchestrator/scripts/state-set.sh .modernization/state.json gates.target_spring_boot_version=4.1</code>, then retry</td>
 </tr>
 <tr>
 <td>Phase failed at <code>java_spring_upgrade</code></td>

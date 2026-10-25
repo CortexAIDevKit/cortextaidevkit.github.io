@@ -1291,9 +1291,13 @@ in the phase that involves judgment. The plan has five sections:</p>
 </tr>
 </tbody>
 </table>
-<!-- TODO: target versions — section 4 states a fixed target in the plan template. Describe it here
-     once the plan template, settings.json defaults and available upgrade recipes are aligned in code. -->
-
+<div class="admonition warning">
+<p class="admonition-title">Section 4's target is fixed text</p>
+<p>Section 4 always says <em>"Java 21 and Spring Boot 4.1 or later"</em>. The plan template hard-codes this;
+it is not derived from your project or your settings. The versions actually applied are the ones
+you choose when the code phase starts (supported: Java <code>17</code>, <code>21</code>, <code>25</code>; Spring Boot <code>3.5</code>, <code>4.1</code>).
+See <a href="../code/#target-version-selection">Code → Target version selection</a>.</p>
+</div>
 <p>Section 4 deliberately does not reason about individual dependencies or name OpenRewrite recipes.
 That work belongs to the code phase, which re-checks dependency facts after the upgrade.</p>
 <p>The agent then marks the <code>report</code> step complete and sets <code>status: reported</code>.</p>

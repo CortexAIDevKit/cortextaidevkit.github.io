@@ -461,6 +461,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#set-your-two-jdks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Set your two JDKs
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#start-the-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -697,6 +708,17 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#set-your-two-jdks" class="md-nav__link">
+    <span class="md-ellipsis">
+      <span class="md-typeset">
+        Set your two JDKs
+      </span>
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#start-the-pipeline" class="md-nav__link">
     <span class="md-ellipsis">
       <span class="md-typeset">
@@ -725,7 +747,7 @@
 
 
 <h1 id="quick-start">Quick Start<a class="headerlink" href="#quick-start" title="Permanent link">&para;</a></h1>
-<h4>From zero to your first modernization run in three steps.</h4>
+<h4>From zero to your first modernization run in four steps.</h4>
 
 <hr />
 <h2 id="before-you-start">Before you start<a class="headerlink" href="#before-you-start" title="Permanent link">&para;</a></h2>
@@ -793,7 +815,7 @@
 </tr>
 <tr>
 <td><code>python3</code></td>
-<td>Writes the determine-phase reports</td>
+<td>Writes the reports, scores tests and edits <code>pom.xml</code> (determine, test and code phases)</td>
 </tr>
 <tr>
 <td><code>bash</code></td>
@@ -811,13 +833,15 @@
 </table>
 <p><code>--install</code> uses Homebrew on macOS, or <code>apt</code> / <code>dnf</code> on Linux. It installs JDK 21 if no JDK is
 found. To pick another, end the command with <code>| JDK_VERSION=25 bash -s -- --install</code>.</p>
-<p>Maven's JDK must be at least the Java version you upgrade to. The script prints it.</p>
+<p>You need <strong>two JDKs</strong> installed: the one your project builds on today and the one you upgrade to.
+They can be the same. The script prints the Java version your <code>pom.xml</code> declares. Once the
+pipeline is added, re-run the script to check both JDKs.</p>
 </details>
 <h2 id="add-the-agent-to-your-project">Add the agent to your project<a class="headerlink" href="#add-the-agent-to-your-project" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://github.com/paul58914080/java-springboot-modernization-claude-agent/archive/main.tar.gz<span class="w"> </span><span class="se">\</span>
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>curl<span class="w"> </span>-fsSL<span class="w"> </span>https://github.com/CortexAIDevKit/java-springboot-modernize-claude-agent/archive/main.tar.gz<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="p">|</span><span class="w"> </span>tar<span class="w"> </span>-xz<span class="w"> </span>--strip-components<span class="o">=</span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span>java-springboot-modernization-claude-agent-main/final/CLAUDE.md<span class="w"> </span><span class="se">\</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span>java-springboot-modernization-claude-agent-main/final/.claude
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">      </span>java-springboot-modernize-claude-agent-main/final/CLAUDE.md<span class="w"> </span><span class="se">\</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">      </span>java-springboot-modernize-claude-agent-main/final/.claude
 </span></code></pre></div>
 <p>This adds <code>CLAUDE.md</code> and <code>.claude/</code> to your project.</p>
 <div class="admonition warning">
@@ -825,20 +849,35 @@ found. To pick another, end the command with <code>| JDK_VERSION=25 bash -s -- -
 <p>They will be overwritten. Back them up first, then merge your settings back into
 <code>.claude/settings.json</code>.</p>
 </div>
+<h2 id="set-your-two-jdks">Set your two JDKs<a class="headerlink" href="#set-your-two-jdks" title="Permanent link">&para;</a></h2>
+<p>The pipeline builds your current code on the <strong>current</strong> JDK, and the upgraded code on the
+<strong>target</strong> JDK. It switches between them itself. Set both in the <code>env</code> block of
+<code>.claude/settings.json</code>. The shipped paths are placeholders, so the pipeline stops until you set them.</p>
+<div class="language-json highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="nt">"MODERNIZATION_CURRENT_JAVA_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"17"</span><span class="p">,</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="nt">"MODERNIZATION_CURRENT_JAVA_HOME"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/Users/you/.sdkman/candidates/java/17.0.19-tem"</span><span class="p">,</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="nt">"MODERNIZATION_TARGET_JAVA_VERSION"</span><span class="p">:</span><span class="w"> </span><span class="s2">"25"</span><span class="p">,</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="nt">"MODERNIZATION_TARGET_JAVA_HOME"</span><span class="p">:</span><span class="w"> </span><span class="s2">"/Users/you/.sdkman/candidates/java/25.0.3-tem"</span>
+</span></code></pre></div>
+<p>Use the folder that contains <code>bin/java</code>. On macOS, <code>/usr/libexec/java_home -v 17</code> prints it. Each
+version must match the JDK at its path, or the pipeline stops and names the mismatch. To keep
+machine-specific paths out of git, put these four keys in <code>.claude/settings.local.json</code> instead.</p>
+<p>Re-run the prerequisite script. It checks both JDKs.</p>
 <details class="note">
 <summary>Optional: change the defaults</summary>
 <p>Edit the <code>env</code> block in <code>.claude/settings.json</code> <strong>before</strong> you start:</p>
 <ul>
 <li><code>MODERNIZATION_TESTABILITY_THRESHOLD</code> (default <code>80</code>): below this score, the test phase runs.</li>
-<li><code>MODERNIZATION_TARGET_JAVA_VERSION</code> and <code>MODERNIZATION_TARGET_SPRING_BOOT_VERSION</code>: the targets
-  offered to you.</li>
+<li><code>MODERNIZATION_TARGET_JAVA_VERSION</code> (default <code>25</code>) and <code>MODERNIZATION_TARGET_SPRING_BOOT_VERSION</code>
+  (default <code>4.1</code>): the targets offered to you. Supported: Java <code>17</code>, <code>21</code>, <code>25</code>; Spring Boot <code>3.5</code>, <code>4.1</code>.</li>
 </ul>
 </details>
 <h2 id="start-the-pipeline">Start the pipeline<a class="headerlink" href="#start-the-pipeline" title="Permanent link">&para;</a></h2>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>claude
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>claude
 </span></code></pre></div>
+<p>If Claude Code asks whether you trust this folder, accept. Otherwise it ignores
+<code>.claude/settings.json</code> and every pipeline script stops to ask for approval.</p>
 <p>Then type:</p>
-<div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Start the modernization pipeline
+<div class="language-text highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>Start the modernization pipeline
 </span></code></pre></div>
 </div>
 <hr />

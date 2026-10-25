@@ -1163,7 +1163,11 @@ is missing or is out of date runs again. You can see the plan without running an
 </span></code></pre></div>
 <h3 id="stage-3-preflight">Stage 3: Preflight<a class="headerlink" href="#stage-3-preflight" title="Permanent link">&para;</a></h3>
 <ul>
-<li>Checks that <code>java</code> and either <code>./mvnw</code> or <code>mvn</code> are available. <code>./mvnw</code> is preferred when present.</li>
+<li>Switches to the <strong>current</strong> JDK from <code>.claude/settings.json</code> (<code>MODERNIZATION_CURRENT_JAVA_VERSION</code>
+  and <code>MODERNIZATION_CURRENT_JAVA_HOME</code>), so every scan builds your code on the JDK it builds on
+  today. If that JDK is missing, or runs a different version than declared, discover stops and
+  names the setting to fix.</li>
+<li>Checks that either <code>./mvnw</code> or <code>mvn</code> is available. <code>./mvnw</code> is preferred when present.</li>
 <li>If the repository is a git work tree, adds <code>.modernization/</code> to <code>.gitignore</code> when that exact line is
   missing. If it is not a git work tree, warns that mutation testing will be skipped.</li>
 <li>Copies the skill's bundled BOM catalog into <code>.modernization/discover/bom-catalog/</code>, replacing any
@@ -1366,8 +1370,10 @@ report itself is wrong (rewrite it from the existing data). It prefers the narro
 reason clearly says the data is wrong, so be specific: "the dependency tree is missing module X"
 leads to a re-scan, "the report links are broken" leads to a rewrite.</p>
 <h2 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h2>
-<p>The discover phase has <strong>no settings of its own in <code>settings.json</code></strong>. The three testability settings
-are copied into the run's state when it starts, but they are used by the determine phase:</p>
+<p>The discover phase builds on the <strong>current</strong> JDK (<code>MODERNIZATION_CURRENT_JAVA_VERSION</code> and
+<code>MODERNIZATION_CURRENT_JAVA_HOME</code>, see <a href="../code/#which-jdk-builds-what">Code</a>). Apart from
+that, it has <strong>no settings of its own in <code>settings.json</code></strong>. The three testability settings are copied
+into the run's state when it starts, but they are used by the determine phase:</p>
 <table>
 <thead>
 <tr>

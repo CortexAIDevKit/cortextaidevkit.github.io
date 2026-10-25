@@ -1256,7 +1256,7 @@ dependency, and never touches <code>&lt;dependencyManagement&gt;</code>.</p>
 <div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>.claude/skills/testability/scripts/measure-testability.sh<span class="w"> </span><span class="se">\</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span>.modernization/test/worktree<span class="w"> </span>.modernization/test/iterations/&lt;attempt&gt;
 </span></code></pre></div>
-<p>This runs a real Maven build with JaCoCo, then PIT mutation testing in a separate temporary copy (so
+<p>This runs a real Maven build on the <strong>current</strong> JDK (the code is not upgraded yet) with JaCoCo, then PIT mutation testing in a separate temporary copy (so
 the PIT plugin added for measurement never ends up in the <code>pom.xml</code> that gets committed), and scores
 the result with the same formula as the determine phase. It is a full measurement every time, not a
 cached one, so each round takes about as long as discover's coverage scans.</p>
