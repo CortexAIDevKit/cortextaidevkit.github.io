@@ -1,0 +1,77 @@
+/* Click-to-magnify for images and Mermaid diagrams (see javascripts/zoom.js) */
+.md-typeset div.mermaid,
+.md-typeset img:not(a img):not(.twemoji):not(.no-zoom) {
+  cursor: zoom-in;
+}
+
+.zoom-locked {
+  overflow: hidden;
+}
+
+.zoom-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(10, 10, 10, 0.94);
+  backdrop-filter: blur(4px);
+  touch-action: none;
+  cursor: zoom-out;
+}
+
+.zoom-overlay.is-open {
+  display: flex;
+}
+
+.zoom-stage {
+  transform-origin: center center;
+  cursor: grab;
+  user-select: none;
+}
+
+.zoom-stage:active {
+  cursor: grabbing;
+}
+
+.zoom-stage > img {
+  display: block;
+  max-width: none;
+  pointer-events: none;
+}
+
+.zoom-diagram {
+  font-family: var(--md-mermaid-font-family, var(--md-text-font-family));
+  pointer-events: none;
+}
+
+.zoom-toolbar {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1;
+  display: flex;
+  gap: 0.25rem;
+  cursor: default;
+}
+
+.zoom-toolbar button {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--md-default-fg-color--lightest);
+  border-radius: 0.25rem;
+  background: var(--md-default-bg-color--light);
+  color: var(--md-default-fg-color);
+  font: 600 0.8rem var(--md-code-font-family);
+  cursor: pointer;
+}
+
+.zoom-toolbar button:hover,
+.zoom-toolbar button:focus-visible {
+  border-color: var(--md-accent-fg-color);
+  color: var(--md-accent-fg-color);
+  outline: none;
+}

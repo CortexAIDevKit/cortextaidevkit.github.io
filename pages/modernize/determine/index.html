@@ -66,6 +66,8 @@
     
       <link rel="stylesheet" href="../../../stylesheets/typography.css">
     
+      <link rel="stylesheet" href="../../../stylesheets/zoom.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_scope.pathname.endsWith("/")||(__md_scope=new URL(__md_scope.pathname+"/",location)),__md_hash=e=>[...e].reduce(((e,t)=>(e<<5)-e+t.charCodeAt(0)),0),__md_get=(e,t=localStorage,_=__md_scope)=>JSON.parse(t.getItem(_.pathname+"."+e)),__md_set=(e,t,_=localStorage,a=__md_scope)=>{try{_.setItem(a.pathname+"."+e,JSON.stringify(t))}catch(e){}},document.documentElement.setAttribute("data-platform",navigator.platform)</script>
     
       
@@ -73,6 +75,16 @@
     
     
 <link rel="apple-touch-icon" href="../../../img/apple-touch-icon.png">
+<!-- Mermaid diagrams render into a closed shadow root; keep it open so they can be magnified -->
+<script>
+  (function () {
+    var attach = Element.prototype.attachShadow;
+    Element.prototype.attachShadow = function (init) {
+      if (this.classList.contains("mermaid")) init = Object.assign({}, init, { mode: "open" });
+      return attach.call(this, init);
+    };
+  })();
+</script>
 
   </head>
   
@@ -1554,6 +1566,8 @@ defaults to <code>./.modernization</code>, so run them from the repository root.
     
     
       <script src="../../../assets/javascripts/bundle.a2388154.min.js"></script>
+      
+        <script src="../../../javascripts/zoom.js"></script>
       
     
   </body>
